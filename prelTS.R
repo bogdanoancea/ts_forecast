@@ -2,20 +2,20 @@ library(AnalyzeTS)
 library(forecast)
 
 # Read data
-construction <- read.csv("C:/Users/bogda/Dropbox/papers/2021/Mathematics/new-data/construction.csv", header=TRUE)
+construction <- read.csv("construction.csv", header=TRUE)
 
 # Descriptive statistics
 write.csv2(Descriptives(construction), file = 'construction_desc.csv', sep = ',')
 
 
 # Read data
-industry <- read.csv("C:/Users/bogda/Dropbox/papers/2021/Mathematics/new-data/industry.csv", header=TRUE)
+industry <- read.csv("industry.csv", header=TRUE)
 
 # Descriptive statistics
 write.csv2(Descriptives(industry), file = 'industry_desc.csv', sep = ',')
 
 # Read data
-retail <- read.csv("C:/Users/bogda/Dropbox/papers/2021/Mathematics/new-data/retail.csv", header=TRUE)
+retail <- read.csv("retail.csv", header=TRUE)
 
 # Descriptive statistics
 write.csv2(Descriptives(retail), file = 'retail_desc.csv', sep = ',')
