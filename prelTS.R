@@ -69,17 +69,17 @@ for(i in 1:20) {
 }
 
 acc_ARIMA_industry <- data.frame()
-for(i in 1:20) {
-  tc <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
-  ARIMAfit_industry <- auto.arima(tc)
-  test <- forecast(tc, model = ARIMAfit_industry, use.initial.values=TRUE, h=5)
-  acc_ARIMA_construction <- rbind(acc_ARIMA_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(test$mean)))
+for(i in 1:29) {
+  ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
+  ARIMAfit_industry <- auto.arima(ti)
+  test <- forecast(ti, model = ARIMAfit_industry, use.initial.values=TRUE, h=5)
+  acc_ARIMA_industry <- rbind(acc_ARIMA_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(test$mean)))
 }
 
 acc_ARIMA_retail <- data.frame()
-for(i in 1:20) {
-  tc <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
-  ARIMAfit_industry <- auto.arima(tc)
-  test <- forecast(tc, model = ARIMAfit_industry, use.initial.values=TRUE, h=5)
-  acc_ARIMA_construction <- rbind(acc_ARIMA_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(test$mean)))
+for(i in 1:28) {
+  tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
+  ARIMAfit_retail <- auto.arima(tr)
+  test <- forecast(tr, model = ARIMAfit_retail, use.initial.values=TRUE, h=5)
+  acc_ARIMA_retail <- rbind(acc_ARIMA_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(test$mean)))
 }
