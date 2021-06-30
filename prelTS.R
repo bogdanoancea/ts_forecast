@@ -21,24 +21,25 @@ retail <- read.csv("retail.csv", header=TRUE)
 write.csv2(Descriptives(retail), file = 'retail_desc.csv', sep = ',')
 
 
-
+forecast_horizon <- 5
 
 # Building training and testing sets
-construction_fit <- construction[1:46,]
-industry_fit <- industry[1:46,]
-retail_fit <- retail[1:46,]
+nrows <- nrow(construction)
+construction_fit <- construction[1:(nrows - forecast_horizon),]
+industry_fit <- industry[1:(nrows - forecast_horizon),]
+retail_fit <- retail[1:(nrows - forecast_horizon),]
 
 
-construction_test <- construction[47:51,]
-industry_test <- industry[47:51,]
-retail_test <- retail[47:51,]
+construction_test <- construction[(nrows - forecast_horizon + 1 ):nrows,]
+industry_test <- industry[(nrows - forecast_horizon + 1 ):nrows,]
+retail_test <- retail[(nrows - forecast_horizon + 1 ):nrows,]
 
 # Exponential smoothing
 acc_ets_construction <- data.frame()
 for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   etsfit_construction <- ets(tc)
-  test <- forecast(tc, model = etsfit_construction, use.initial.values=TRUE, h = 5)
+  test <- forecast(tc, model = etsfit_construction, use.initial.values=TRUE, h = forecast_horizon)
   acc_ets_construction <- rbind(acc_ets_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -47,7 +48,7 @@ acc_ets_industry <- data.frame()
 for(i in 1:29) {
   ti <- ts(industry[,i+1], frequency = 12, start = c(2017,1))
   etsfit_industry <- ets(ti)
-  test <- forecast(ti, model = etsfit_industry, use.initial.values=TRUE, h = 5)
+  test <- forecast(ti, model = etsfit_industry, use.initial.values=TRUE, h = forecast_horizon)
   acc_ets_industry <- rbind(acc_ets_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -55,7 +56,7 @@ acc_ets_retail <- data.frame()
 for(i in 1:28) {
   tr <- ts(retail[,i+1], frequency = 12, start = c(2017,1))
   etsfit_retail <- ets(tr)
-  test <- forecast(tr, model = etsfit_retail, use.initial.values=TRUE, h = 5)
+  test <- forecast(tr, model = etsfit_retail, use.initial.values=TRUE, h = forecast_horizon)
   acc_ets_retail <- rbind(acc_ets_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -64,7 +65,7 @@ acc_ARIMA_construction <- data.frame()
 for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   ARIMAfit_construction <- auto.arima(tc)
-  test <- forecast(tc, model = ARIMAfit_construction, use.initial.values=TRUE, h=5)
+  test <- forecast(tc, model = ARIMAfit_construction, use.initial.values=TRUE, h=forecast_horizon)
   acc_ARIMA_construction <- rbind(acc_ARIMA_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -72,7 +73,7 @@ acc_ARIMA_industry <- data.frame()
 for(i in 1:29) {
   ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   ARIMAfit_industry <- auto.arima(ti)
-  test <- forecast(ti, model = ARIMAfit_industry, use.initial.values=TRUE, h=5)
+  test <- forecast(ti, model = ARIMAfit_industry, use.initial.values=TRUE, h=forecast_horizon)
   acc_ARIMA_industry <- rbind(acc_ARIMA_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -80,7 +81,7 @@ acc_ARIMA_retail <- data.frame()
 for(i in 1:28) {
   tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   ARIMAfit_retail <- auto.arima(tr)
-  test <- forecast(tr, model = ARIMAfit_retail, use.initial.values=TRUE, h=5)
+  test <- forecast(tr, model = ARIMAfit_retail, use.initial.values=TRUE, h=forecast_horizon)
   acc_ARIMA_retail <- rbind(acc_ARIMA_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(test$mean)))
 }
 
@@ -96,12 +97,12 @@ for(i in 1:20) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tc, n = n , C = x, type = "Abbasov-Mamedova")
+    pred <- fuzzy.ts2(tc, n = n , C = x, type = "Abbasov-Mamedova", forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "Abbasov-Mamedova")
+  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "Abbasov-Mamedova", forecast = forecast_horizon)
   acc_AM_construction <- rbind(acc_AM_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -114,12 +115,12 @@ for(i in 1:29) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(ti, n = n , C = x, type = "Abbasov-Mamedova")
+    pred <- fuzzy.ts2(ti, n = n , C = x, type = "Abbasov-Mamedova", forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "Abbasov-Mamedova")
+  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "Abbasov-Mamedova", forecast = forecast_horizon)
   acc_AM_industry <- rbind(acc_AM_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -132,12 +133,12 @@ for(i in 1:28) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tr, n = n , C = x, type = "Abbasov-Mamedova")
+    pred <- fuzzy.ts2(tr, n = n , C = x, type = "Abbasov-Mamedova",forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "Abbasov-Mamedova")
+  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "Abbasov-Mamedova",forecast = forecast_horizon)
   acc_AM_retail <- rbind(acc_AM_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -150,12 +151,12 @@ for(i in 1:20) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tc, n = n , C = x, type = "NFTS")
+    pred <- fuzzy.ts2(tc, n = n , C = x, type = "NFTS",forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "NFTS")
+  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "NFTS",forecast = forecast_horizon)
   acc_NFTS_construction <- rbind(acc_NFTS_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -168,12 +169,12 @@ for(i in 1:29) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(ti, n = n , C = x, type = "NFTS")
+    pred <- fuzzy.ts2(ti, n = n , C = x, type = "NFTS",forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "NFTS")
+  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_industry <- rbind(acc_NFTS_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -186,32 +187,32 @@ for(i in 1:28) {
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tr, n = n , C = x, type = "NFTS")
+    pred <- fuzzy.ts2(tr, n = n , C = x, type = "NFTS", forecast = forecast_horizon)
     minn[k] <- av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast))[6]
     k = k+1
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "NFTS")
+  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_retail <- rbind(acc_NFTS_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
 # Save results
-write.csv2(acc_AM_construction, file = 'acc_AM_construction.csv')
-write.csv2(acc_AM_industry, file = 'acc_AM_industry.csv')
-write.csv2(acc_AM_retail, file = 'acc_AM_retail.csv')
+write.csv2(acc_AM_construction, file = paste0(forecast_horizon,'acc_AM_construction.csv'))
+write.csv2(acc_AM_industry, file = paste0(forecast_horizon,'acc_AM_industry.csv'))
+write.csv2(acc_AM_retail, file = paste0(forecast_horizon, 'acc_AM_retail.csv'))
 
-write.csv2(acc_NFTS_construction, file = 'acc_NFTS_construction.csv')
-write.csv2(acc_NFTS_industry, file = 'acc_NFTS_industry.csv')
-write.csv2(acc_NFTS_retail, file = 'acc_NFTS_retail.csv')
+write.csv2(acc_NFTS_construction, file = paste0(forecast_horizon, 'acc_NFTS_construction.csv'))
+write.csv2(acc_NFTS_industry, file = paste0(forecast_horizon,'acc_NFTS_industry.csv'))
+write.csv2(acc_NFTS_retail, file = paste0(forecast_horizon, 'acc_NFTS_retail.csv'))
 
 
-write.csv2(acc_ARIMA_construction, file = 'acc_ARIMA_construction.csv')
-write.csv2(acc_ARIMA_industry, file = 'acc_ARIMA_industry.csv')
-write.csv2(acc_ARIMA_retail, file = 'acc_ARIMA_retail.csv')
+write.csv2(acc_ARIMA_construction, file = paste0(forecast_horizon, 'acc_ARIMA_construction.csv'))
+write.csv2(acc_ARIMA_industry, file = paste0(forecast_horizon,'acc_ARIMA_industry.csv'))
+write.csv2(acc_ARIMA_retail, file = paste0(forecast_horizon, 'acc_ARIMA_retail.csv'))
 
-write.csv2(acc_ets_construction, file = 'acc_ets_construction.csv')
-write.csv2(acc_ets_industry, file = 'acc_ets_industry.csv')
-write.csv2(acc_ets_retail, file = 'acc_ets_retail.csv')
+write.csv2(acc_ets_construction, file = paste0(forecast_horizon, 'acc_ets_construction.csv'))
+write.csv2(acc_ets_industry, file = paste0(forecast_horizon, 'acc_ets_industry.csv'))
+write.csv2(acc_ets_retail, file = paste0(forecast_horizon, 'acc_ets_retail.csv'))
 
 
 #ME
@@ -313,8 +314,4 @@ N_retailNFTSgtETS_RMSE = sum(acc_NFTS_retail[,6] < acc_ets_retail[,6])
 N_retailNFTSgtARIMA_RMSE = sum(acc_NFTS_retail[,6] < acc_ARIMA_retail[,6])
 
 
-####################
-N_constrAMgtETS_ME + N_indAMgtETS_ME + N_retailAMgtETS_ME
-N_constrAMgtARIMA_ME + N_indAMgtARIMA_ME + N_retailAMgtARIMA_ME
-N_constrNFTSgtETS_ME + N_indNFTSgtETS_ME + N_retailNFTSgtETS_ME
-N_constrNFTSgtARIMA_ME + N_indNFTSgtARIMA_ME + N_retailNFTSgtARIMA_ME
+
