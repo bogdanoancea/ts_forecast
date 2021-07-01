@@ -21,7 +21,7 @@ retail <- read.csv("retail.csv", header=TRUE)
 write.csv2(Descriptives(retail), file = 'retail_desc.csv', sep = ',')
 
 
-forecast_horizon <- 5
+forecast_horizon <- 10
 
 # Building training and testing sets
 nrows <- nrow(construction)
@@ -94,15 +94,20 @@ for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tc, n = n, type="Abbasov-Mamedova", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tc, n = n , C = x, type = "Abbasov-Mamedova", forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+  		pred <- fuzzy.ts2(tc, n = n , C = x, w = y, type = "Abbasov-Mamedova", forecast = forecast_horizon)
+  		minn[k] <- av.res(as.data.frame(construction_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+  		k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "Abbasov-Mamedova", forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(tc, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_construction <- rbind(acc_AM_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -112,15 +117,20 @@ for(i in 1:29) {
   ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(ti,n = n, type="Abbasov-Mamedova", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(ti, n = n , C = x, type = "Abbasov-Mamedova", forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+  		pred <- fuzzy.ts2(ti, n = n , C = x, w = y, type = "Abbasov-Mamedova", forecast = forecast_horizon)
+  		minn[k] <- av.res(as.data.frame(industry_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+  		k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "Abbasov-Mamedova", forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(ti, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_industry <- rbind(acc_AM_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -130,15 +140,20 @@ for(i in 1:28) {
   tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tr,n = n, type="Abbasov-Mamedova", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tr, n = n , C = x, type = "Abbasov-Mamedova",forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+  		pred <- fuzzy.ts2(tr, n = n , C = x, w = y, type = "Abbasov-Mamedova", forecast = forecast_horizon)
+  		minn[k] <- av.res(as.data.frame(retail_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+  		k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "Abbasov-Mamedova",forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(tr, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_retail <- rbind(acc_AM_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -148,15 +163,20 @@ for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tc, n = n, type="NFTS", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tc, n = n , C = x, type = "NFTS",forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+  		pred <- fuzzy.ts2(tc, n = n , C = x, w = y, type = "NFTS", forecast = forecast_horizon)
+  		minn[k] <- av.res(as.data.frame(construction_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+  		k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tc, n = n ,C = Cseq[index], type = "NFTS",forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(tc, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)  
   acc_NFTS_construction <- rbind(acc_NFTS_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -166,15 +186,20 @@ for(i in 1:29) {
   ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(ti,n = n, type="NFTS", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(ti, n = n , C = x, type = "NFTS",forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+  		pred <- fuzzy.ts2(ti, n = n , C = x, w = y, type = "NFTS", forecast = forecast_horizon)
+  		minn[k] <- av.res(as.data.frame(industry_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+  		k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(ti, n = n , C = Cseq[index], type = "NFTS", forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(ti, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_industry <- rbind(acc_NFTS_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -184,15 +209,20 @@ for(i in 1:28) {
   tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tr,n = n, type="NFTS", show.complete = FALSE)
   Cseq <- seq(from=0.01, to=10, by = 0.01)
+  wseq <- seq(from = 2, to = 10)
   minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
-    pred <- fuzzy.ts2(tr, n = n , C = x, type = "NFTS", forecast = forecast_horizon)
-    minn[k] <- av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast))[6]
-    k = k+1
+  	for ( y in wseq) {
+    	pred <- fuzzy.ts2(tr, n = n , C = x, w = y, type = "NFTS", forecast = forecast_horizon)
+    	minn[k] <- av.res(as.data.frame(retail_fit[,i+1]), as.data.frame(pred$interpolate))[6]
+    	k = k+1
+  	}
   }
   index <- which.min(minn)
-  pred <- fuzzy.ts2(tr, n = n , C = Cseq[index], type = "NFTS", forecast = forecast_horizon)
+  iC <- floor((index-1)/length(wseq)) + 1
+  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  pred <- fuzzy.ts2(tr, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_retail <- rbind(acc_NFTS_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
 }
 
@@ -214,104 +244,110 @@ write.csv2(acc_ets_construction, file = paste0(forecast_horizon, 'acc_ets_constr
 write.csv2(acc_ets_industry, file = paste0(forecast_horizon, 'acc_ets_industry.csv'))
 write.csv2(acc_ets_retail, file = paste0(forecast_horizon, 'acc_ets_retail.csv'))
 
+# Build result tables
 
-#ME
-N_constrAMgtETS_ME = sum(acc_AM_construction[,1] < acc_ets_construction[,1])
-N_constrAMgtARIMA_ME = sum(acc_AM_construction[,1] < acc_ARIMA_construction[,1])
-N_constrNFTSgtETS_ME = sum(acc_NFTS_construction[,1] < acc_ets_construction[,1])
-N_constrNFTSgtARIMA_ME = sum(acc_NFTS_construction[1,] < acc_ARIMA_construction[,1])
+constr_table <- data.frame(row.names = seq(1,20))
+constr_table <- cbind(constr_table, acc_AM_construction$MAE)
+constr_table <- cbind(constr_table, acc_AM_construction$MAPE)
+constr_table <- cbind(constr_table, acc_AM_construction$RMSE)
 
-N_indAMgtETS_ME = sum(acc_AM_industry[1,] < acc_ets_industry[,1])
-N_indAMgtARIMA_ME = sum(acc_AM_industry[1,] < acc_ARIMA_industry[,1])
-N_indNFTSgtETS_ME = sum(acc_NFTS_industry[1,] < acc_ets_industry[,1])
-N_indNFTSgtARIMA_ME = sum(acc_NFTS_industry[,1] < acc_ARIMA_industry[,1])
+constr_table <- cbind(constr_table, acc_NFTS_construction$MAE)
+constr_table <- cbind(constr_table, acc_NFTS_construction$MAPE)
+constr_table <- cbind(constr_table, acc_NFTS_construction$RMSE)
 
-N_retailAMgtETS_ME = sum(acc_AM_retail[1,] < acc_ets_retail[,1])
-N_retailAMgtARIMA_ME = sum(acc_AM_retail[1,] < acc_ARIMA_retail[,1])
-N_retailNFTSgtETS_ME = sum(acc_NFTS_retail[,1] < acc_ets_retail[,1])
-N_retailNFTSgtARIMA_ME = sum(acc_NFTS_retail[1,] < acc_ARIMA_retail[,1])
+constr_table <- cbind(constr_table, acc_ets_construction$MAE)
+constr_table <- cbind(constr_table, acc_ets_construction$MAPE)
+constr_table <- cbind(constr_table, acc_ets_construction$RMSE)
 
+constr_table <- cbind(constr_table, acc_ARIMA_construction$MAE)
+constr_table <- cbind(constr_table, acc_ARIMA_construction$MAPE)
+constr_table <- cbind(constr_table, acc_ARIMA_construction$RMSE)
 
+industry_table <- data.frame(row.names = seq(1,29))
+industry_table <- cbind(industry_table, acc_AM_industry$MAE)
+industry_table <- cbind(industry_table, acc_AM_industry$MAPE)
+industry_table <- cbind(industry_table, acc_AM_industry$RMSE)
 
-# MAE
-N_constrAMgtETS_MAE = sum(acc_AM_construction[,2] < acc_ets_construction[,2])
-N_constrAMgtARIMA_MAE = sum(acc_AM_construction[,2] < acc_ARIMA_construction[,2])
-N_constrNFTSgtETS_MAE = sum(acc_NFTS_construction[,2] < acc_ets_construction[,2])
-N_constrNFTSgtARIMA_MAE = sum(acc_NFTS_construction[,2] < acc_ARIMA_construction[,2])
+industry_table <- cbind(industry_table, acc_NFTS_industry$MAE)
+industry_table <- cbind(industry_table, acc_NFTS_industry$MAPE)
+industry_table <- cbind(industry_table, acc_NFTS_industry$RMSE)
 
-N_indAMgtETS_MAE = sum(acc_AM_industry[,2] < acc_ets_industry[,2])
-N_indAMgtARIMA_MAE = sum(acc_AM_industry[,2] < acc_ARIMA_industry[,2])
-N_indNFTSgtETS_MAE = sum(acc_NFTS_industry[,2] < acc_ets_industry[,2])
-N_indNFTSgtARIMA_MAE = sum(acc_NFTS_industry[ ,2]< acc_ARIMA_industry[,2])
+industry_table <- cbind(industry_table, acc_ets_industry$MAE)
+industry_table <- cbind(industry_table, acc_ets_industry$MAPE)
+industry_table <- cbind(industry_table, acc_ets_industry$RMSE)
 
-N_retailAMgtETS_MAE = sum(acc_AM_retail[,2] < acc_ets_retail[,2])
-N_retailAMgtARIMA_MAE = sum(acc_AM_retail[,2] < acc_ARIMA_retail[,2])
-N_retailNFTSgtETS_MAE = sum(acc_NFTS_retail[,2] < acc_ets_retail[,2])
-N_retailNFTSgtARIMA_MAE = sum(acc_NFTS_retail[,2] < acc_ARIMA_retail[,2])
+industry_table <- cbind(industry_table, acc_ARIMA_industry$MAE)
+industry_table <- cbind(industry_table, acc_ARIMA_industry$MAPE)
+industry_table <- cbind(industry_table, acc_ARIMA_industry$RMSE)
 
-#MPE
-N_constrAMgtETS_MPE = sum(acc_AM_construction[,3] < acc_ets_construction[,3])
-N_constrAMgtARIMA_MPE = sum(acc_AM_construction[,3] < acc_ARIMA_construction[,3])
-N_constrNFTSgtETS_MPE = sum(acc_NFTS_construction[,3] < acc_ets_construction[,3])
-N_constrNFTSgtARIMA_MPE = sum(acc_NFTS_construction[,3] < acc_ARIMA_construction[,3])
+retail_table <- data.frame(row.names = seq(1:28))
+retail_table <- cbind(retail_table, acc_AM_retail$MAE)
+retail_table <- cbind(retail_table, acc_AM_retail$MAPE)
+retail_table <- cbind(retail_table, acc_AM_retail$RMSE)
 
-N_indAMgtETS_MPE = sum(acc_AM_industry[,3] < acc_ets_industry[,3])
-N_indAMgtARIMA_MPE = sum(acc_AM_industry[,3] < acc_ARIMA_industry[,3])
-N_indNFTSgtETS_MPE = sum(acc_NFTS_industry[,3] < acc_ets_industry[,3])
-N_indNFTSgtARIMA_MPE = sum(acc_NFTS_industry[,3] < acc_ARIMA_industry[,3])
+retail_table <- cbind(retail_table, acc_NFTS_retail$MAE)
+retail_table <- cbind(retail_table, acc_NFTS_retail$MAPE)
+retail_table <- cbind(retail_table, acc_NFTS_retail$RMSE)
 
-N_retailAMgtETS_MPE = sum(acc_AM_retail[,3] < acc_ets_retail[,3])
-N_retailAMgtARIMA_MPE = sum(acc_AM_retail[,3] < acc_ARIMA_retail[,3])
-N_retailNFTSgtETS_MPE = sum(acc_NFTS_retail[,3] < acc_ets_retail[,3])
-N_retailNFTSgtARIMA_MPE = sum(acc_NFTS_retail[,3] < acc_ARIMA_retail[,3])
+retail_table <- cbind(retail_table, acc_ets_retail$MAE)
+retail_table <- cbind(retail_table, acc_ets_retail$MAPE)
+retail_table <- cbind(retail_table, acc_ets_retail$RMSE)
 
-#MAPE
-N_constrAMgtETS_MAPE = sum(acc_AM_construction[,4] < acc_ets_construction[,4])
-N_constrAMgtARIMA_MAPE = sum(acc_AM_construction[,4] < acc_ARIMA_construction[,4])
-N_constrNFTSgtETS_MAPE = sum(acc_NFTS_construction[,4] < acc_ets_construction[,4])
-N_constrNFTSgtARIMA_MAPE = sum(acc_NFTS_construction[,4] < acc_ARIMA_construction[,4])
-
-N_indAMgtETS_MAPE = sum(acc_AM_industry[,4] < acc_ets_industry[,4])
-N_indAMgtARIMA_MAPE = sum(acc_AM_industry[,4] < acc_ARIMA_industry[,4])
-N_indNFTSgtETS_MAPE = sum(acc_NFTS_industry[,4] < acc_ets_industry[,4])
-N_indNFTSgtARIMA_MAPE = sum(acc_NFTS_industry[,4] < acc_ARIMA_industry[,4])
-
-N_retailAMgtETS_MAPE = sum(acc_AM_retail[,4] < acc_ets_retail[,4])
-N_retailAMgtARIMA_MAPE = sum(acc_AM_retail[,4] < acc_ARIMA_retail[,4])
-N_retailNFTSgtETS_MAPE = sum(acc_NFTS_retail[,4] < acc_ets_retail[,4])
-N_retailNFTSgtARIMA_MAPE = sum(acc_NFTS_retail[,4] < acc_ARIMA_retail[,4])
-
-#MSE
-N_constrAMgtETS_MSE = sum(acc_AM_construction[,5] < acc_ets_construction[,5])
-N_constrAMgtARIMA_MSE = sum(acc_AM_construction[,5] < acc_ARIMA_construction[,5])
-N_constrNFTSgtETS_MSE = sum(acc_NFTS_construction[,5] < acc_ets_construction[,5])
-N_constrNFTSgtARIMA_MSE = sum(acc_NFTS_construction[,5] < acc_ARIMA_construction[,5])
-
-N_indAMgtETS_MSE = sum(acc_AM_industry[,5] < acc_ets_industry[,5])
-N_indAMgtARIMA_MSE = sum(acc_AM_industry[,5] < acc_ARIMA_industry[,5])
-N_indNFTSgtETS_MSE = sum(acc_NFTS_industry[,5] < acc_ets_industry[,5])
-N_indNFTSgtARIMA_MSE = sum(acc_NFTS_industry[,5] < acc_ARIMA_industry[,5])
-
-N_retailAMgtETS_MSE = sum(acc_AM_retail[,5] < acc_ets_retail[,5])
-N_retailAMgtARIMA_MSE = sum(acc_AM_retail[,5] < acc_ARIMA_retail[,5])
-N_retailNFTSgtETS_MSE = sum(acc_NFTS_retail[,5]< acc_ets_retail[,5])
-N_retailNFTSgtARIMA_MSE = sum(acc_NFTS_retail[,5] < acc_ARIMA_retail[,5])
-
-#RMSE
-N_constrAMgtETS_RMSE = sum(acc_AM_construction[,6] < acc_ets_construction[,6])
-N_constrAMgtARIMA_RMSE = sum(acc_AM_construction[,6] < acc_ARIMA_construction[,6])
-N_constrNFTSgtETS_RMSE = sum(acc_NFTS_construction[,6] < acc_ets_construction[,6])
-N_constrNFTSgtARIMA_RMSE = sum(acc_NFTS_construction[,6] < acc_ARIMA_construction[,6])
-
-N_indAMgtETS_RMSE = sum(acc_AM_industry[,6] < acc_ets_industry[,6])
-N_indAMgtARIMA_RMSE = sum(acc_AM_industry[,6] < acc_ARIMA_industry[,6])
-N_indNFTSgtETS_RMSE = sum(acc_NFTS_industry[,6] < acc_ets_industry[,6])
-N_indNFTSgtARIMA_RMSE = sum(acc_NFTS_industry[,6] < acc_ARIMA_industry[,6])
-
-N_retailAMgtETS_RMSE = sum(acc_AM_retail[,6] < acc_ets_retail[,6])
-N_retailAMgtARIMA_RMSE = sum(acc_AM_retail[,6] < acc_ARIMA_retail[,6])
-N_retailNFTSgtETS_RMSE = sum(acc_NFTS_retail[,6] < acc_ets_retail[,6])
-N_retailNFTSgtARIMA_RMSE = sum(acc_NFTS_retail[,6] < acc_ARIMA_retail[,6])
+retail_table <- cbind(retail_table, acc_ARIMA_retail$MAE)
+retail_table <- cbind(retail_table, acc_ARIMA_retail$MAPE)
+retail_table <- cbind(retail_table, acc_ARIMA_retail$RMSE)
 
 
+N_constr <- data.frame(row.names = seq(1:1))
+cN_MAE_AM_MAE_ETS <- sum(constr_table$`acc_AM_construction$MAE`<=constr_table$`acc_ets_construction$MAE`)
+cN_MAPE_AM_MAPE_ETS <- sum(constr_table$`acc_AM_construction$MAPE`<=constr_table$`acc_ets_construction$MAPE`)
+cN_RMSE_AM_RMSE_ETS <- sum(constr_table$`acc_AM_construction$RMSE`<=constr_table$`acc_ets_construction$RMSE`)
+
+cN_MAE_AM_MAE_ARIMA <- sum(constr_table$`acc_AM_construction$MAE`<=constr_table$`acc_ARIMA_construction$MAE`)
+cN_MAPE_AM_MAPE_ARIMA <- sum(constr_table$`acc_AM_construction$MAPE`<=constr_table$`acc_ARIMA_construction$MAPE`)
+cN_RMSE_AM_RMSE_ARIMA <- sum(constr_table$`acc_AM_construction$RMSE`<=constr_table$`acc_ARIMA_construction$RMSE`)
+
+cN_MAE_NFTS_MAE_ETS <- sum(constr_table$`acc_NFTS_construction$MAE`<=constr_table$`acc_ets_construction$MAE`)
+cN_MAPE_NFTS_MAPE_ETS <- sum(constr_table$`acc_NFTS_construction$MAPE`<=constr_table$`acc_ets_construction$MAPE`)
+cN_RMSE_NFTS_RMSE_ETS <- sum(constr_table$`acc_NFTS_construction$RMSE`<=constr_table$`acc_ets_construction$RMSE`)
+
+cN_MAE_NFTS_MAE_ARIMA <- sum(constr_table$`acc_NFTS_construction$MAE`<=constr_table$`acc_ARIMA_construction$MAE`)
+cN_MAPE_NFTS_MAPE_ARIMA <- sum(constr_table$`acc_NFTS_construction$MAPE`<=constr_table$`acc_ARIMA_construction$MAPE`)
+cN_RMSE_NFTS_RMSE_ARIMA <- sum(constr_table$`acc_NFTS_construction$RMSE`<=constr_table$`acc_ARIMA_construction$RMSE`)
+
+N_industry <- data.frame(row.names = seq(1:1))
+iN_MAE_AM_MAE_ETS <- sum(industry_table$`acc_AM_industry$MAE`<= industry_table$`acc_ets_industry$MAE`)
+iN_MAPE_AM_MAPE_ETS <- sum(industry_table$`acc_AM_industry$MAPE`<=industry_table$`acc_ets_industry$MAPE`)
+iN_RMSE_AM_RMSE_ETS <- sum(industry_table$`acc_AM_industry$RMSE`<=industry_table$`acc_ets_industry$RMSE`)
+
+iN_MAE_AM_MAE_ARIMA <- sum(industry_table$`acc_AM_industry$MAE`<=industry_table$`acc_ARIMA_industry$MAE`)
+iN_MAPE_AM_MAPE_ARIMA <- sum(industry_table$`acc_AM_industry$MAPE`<=industry_table$`acc_ARIMA_industry$MAPE`)
+iN_RMSE_AM_RMSE_ARIMA <- sum(industry_table$`acc_AM_industry$RMSE`<=industry_table$`acc_ARIMA_industry$RMSE`)
+
+iN_MAE_NFTS_MAE_ETS <- sum(industry_table$`acc_NFTS_industry$MAE`<=industry_table$`acc_ets_industry$MAE`)
+iN_MAPE_NFTS_MAPE_ETS <- sum(industry_table$`acc_NFTS_industry$MAPE`<=industry_table$`acc_ets_industry$MAPE`)
+iN_RMSE_NFTS_RMSE_ETS <- sum(industry_table$`acc_NFTS_industry$RMSE`<=industry_table$`acc_ets_industry$RMSE`)
+
+iN_MAE_NFTS_MAE_ARIMA <- sum(industry_table$`acc_NFTS_industry$MAE`<=industry_table$`acc_ARIMA_industry$MAE`)
+iN_MAPE_NFTS_MAPE_ARIMA <- sum(industry_table$`acc_NFTS_industry$MAPE`<=industry_table$`acc_ARIMA_industry$MAPE`)
+iN_RMSE_NFTS_RMSE_ARIMA <- sum(industry_table$`acc_NFTS_industry$RMSE`<=industry_table$`acc_ARIMA_industry$RMSE`)
+
+
+
+N_retail <- data.frame(row.names = seq(1:1))
+rN_MAE_AM_MAE_ETS <- sum(retail_table$`acc_AM_retail$MAE`<= retail_table$`acc_ets_retail$MAE`)
+rN_MAPE_AM_MAPE_ETS <- sum(retail_table$`acc_AM_retail$MAPE`<=retail_table$`acc_ets_retail$MAPE`)
+rN_RMSE_AM_RMSE_ETS <- sum(retail_table$`acc_AM_retail$RMSE`<=retail_table$`acc_ets_retail$RMSE`)
+
+rN_MAE_AM_MAE_ARIMA <- sum(retail_table$`acc_AM_retail$MAE`<=retail_table$`acc_ARIMA_retail$MAE`)
+rN_MAPE_AM_MAPE_ARIMA <- sum(retail_table$`acc_AM_retail$MAPE`<=retail_table$`acc_ARIMA_retail$MAPE`)
+rN_RMSE_AM_RMSE_ARIMA <- sum(retail_table$`acc_AM_retail$RMSE`<=retail_table$`acc_ARIMA_retail$RMSE`)
+
+rN_MAE_NFTS_MAE_ETS <- sum(retail_table$`acc_NFTS_retail$MAE`<=retail_table$`acc_ets_retail$MAE`)
+rN_MAPE_NFTS_MAPE_ETS <- sum(retail_table$`acc_NFTS_retail$MAPE`<=retail_table$`acc_ets_retail$MAPE`)
+rN_RMSE_NFTS_RMSE_ETS <- sum(retail_table$`acc_NFTS_retail$RMSE`<=retail_table$`acc_ets_retail$RMSE`)
+
+rN_MAE_NFTS_MAE_ARIMA <- sum(retail_table$`acc_NFTS_retail$MAE`<=retail_table$`acc_ARIMA_retail$MAE`)
+rN_MAPE_NFTS_MAPE_ARIMA <- sum(retail_table$`acc_NFTS_retail$MAPE`<=retail_table$`acc_ARIMA_retail$MAPE`)
+rN_RMSE_NFTS_RMSE_ARIMA <- sum(retail_table$`acc_NFTS_retail$RMSE`<=retail_table$`acc_ARIMA_retail$RMSE`)
 
