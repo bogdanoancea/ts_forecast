@@ -21,10 +21,10 @@ retail <- read.csv("retail.csv", header=TRUE)
 write.csv2(Descriptives(retail), file = 'retail_desc.csv', sep = ',')
 
 
-forecast_horizon <- 10
+forecast_horizon <- 6
 
 # Building training and testing sets
-nrows <- nrow(construction)
+nrows <- nrow(construction) - 13
 construction_fit <- construction[1:(nrows - forecast_horizon),]
 industry_fit <- industry[1:(nrows - forecast_horizon),]
 retail_fit <- retail[1:(nrows - forecast_horizon),]
@@ -46,7 +46,7 @@ for(i in 1:20) {
 
 acc_ets_industry <- data.frame()
 for(i in 1:29) {
-  ti <- ts(industry[,i+1], frequency = 12, start = c(2017,1))
+  ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   etsfit_industry <- ets(ti)
   test <- forecast(ti, model = etsfit_industry, use.initial.values=TRUE, h = forecast_horizon)
   acc_ets_industry <- rbind(acc_ets_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(test$mean)))
@@ -54,7 +54,7 @@ for(i in 1:29) {
 
 acc_ets_retail <- data.frame()
 for(i in 1:28) {
-  tr <- ts(retail[,i+1], frequency = 12, start = c(2017,1))
+  tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   etsfit_retail <- ets(tr)
   test <- forecast(tr, model = etsfit_retail, use.initial.values=TRUE, h = forecast_horizon)
   acc_ets_retail <- rbind(acc_ets_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(test$mean)))
@@ -90,12 +90,14 @@ for(i in 1:28) {
 n <- round(1 + 3.3 * log10(46))
 # Abasov- Mamedova
 acc_AM_construction <- data.frame()
+Cseq <- seq(from=0.01, to=10, by = 0.01)
+wseq <- seq(from = 2, to = 10)
+lc <- length(Cseq)
+lw <- length(wseq)
+minn = vector(mode = 'numeric', length = lc * lw)
 for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tc, n = n, type="Abbasov-Mamedova", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -105,10 +107,11 @@ for(i in 1:20) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(tc, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_construction <- rbind(acc_AM_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('construction AM i =  ', i, '\n'))
 }
 
 
@@ -116,9 +119,6 @@ acc_AM_industry <- data.frame()
 for(i in 1:29) {
   ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(ti,n = n, type="Abbasov-Mamedova", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -128,10 +128,11 @@ for(i in 1:29) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(ti, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_industry <- rbind(acc_AM_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('industry AM i =  ', i, '\n'))
 }
 
 
@@ -139,9 +140,6 @@ acc_AM_retail <- data.frame()
 for(i in 1:28) {
   tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tr,n = n, type="Abbasov-Mamedova", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -151,10 +149,11 @@ for(i in 1:28) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(tr, n = n , C = Cseq[iC], w = wseq[iw], type = "Abbasov-Mamedova", forecast = forecast_horizon)  
   acc_AM_retail <- rbind(acc_AM_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('retail AM i =  ', i, '\n'))
 }
 
 # NFTS
@@ -162,9 +161,6 @@ acc_NFTS_construction <- data.frame()
 for(i in 1:20) {
   tc <- ts(construction_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tc, n = n, type="NFTS", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -174,10 +170,11 @@ for(i in 1:20) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(tc, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)  
   acc_NFTS_construction <- rbind(acc_NFTS_construction, av.res(as.data.frame(construction_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('construction NFTS i =  ', i, '\n'))
 }
 
 
@@ -185,9 +182,6 @@ acc_NFTS_industry <- data.frame()
 for(i in 1:29) {
   ti <- ts(industry_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(ti,n = n, type="NFTS", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -197,10 +191,11 @@ for(i in 1:29) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(ti, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_industry <- rbind(acc_NFTS_industry, av.res(as.data.frame(industry_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('industry NFTS i =  ', i, '\n'))
 }
 
 
@@ -208,9 +203,6 @@ acc_NFTS_retail <- data.frame()
 for(i in 1:28) {
   tr <- ts(retail_fit[,i+1], frequency = 12, start = c(2017,1))
   #C1 <- DOC(tr,n = n, type="NFTS", show.complete = FALSE)
-  Cseq <- seq(from=0.01, to=10, by = 0.01)
-  wseq <- seq(from = 2, to = 10)
-  minn = vector(mode = 'numeric', length = length(Cseq))
   k = 1
   for(x in Cseq) {
   	for ( y in wseq) {
@@ -220,10 +212,11 @@ for(i in 1:28) {
   	}
   }
   index <- which.min(minn)
-  iC <- floor((index-1)/length(wseq)) + 1
-  iw <- index - (index / length(wseq)) * length(wseq) + 1
+  iC <- floor((index-1)/lw) + 1
+  iw <- index - (index / lw) * lw + 1
   pred <- fuzzy.ts2(tr, n = n , C = Cseq[iC], w = wseq[iw], type = "NFTS", forecast = forecast_horizon)
   acc_NFTS_retail <- rbind(acc_NFTS_retail, av.res(as.data.frame(retail_test[,i+1]), as.data.frame(pred$forecast)))
+  cat(paste0('retail NFTS i =  ', i, '\n'))
 }
 
 # Save results
